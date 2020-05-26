@@ -1,4 +1,4 @@
-# Multi-Camera
+# Wide-Angle-Camera
 
 [![HitCount](http://hits.dwyl.com/charlie-captain/Multi-Camera.svg)](http://hits.dwyl.com/charlie-captain/Multi-Camera)
 
