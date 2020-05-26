@@ -1,5 +1,7 @@
 # Multi-Camera
 
+[![HitCount](http://hits.dwyl.com/charlie-captain/Multi-Camera.svg)](http://hits.dwyl.com/charlie-captain/Multi-Camera)
+
 获取设备相机信息, 判断相机是否广角, 对物理尺寸进行排序
 
 ## 参考文献
