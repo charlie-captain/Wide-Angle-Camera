@@ -123,8 +123,7 @@ class CameraFragment : Fragment() {
         }
 
         //简单判断哪个是广角镜头
-        //通过FOV(field of view)排序
-        //升序比较, 尺寸从小到大
+        //通过FOV(field of view)排序, 从小到大, 角度越大, 越是广角
         val comparator = object : Comparator<CameraInformation> {
             override fun compare(o1: CameraInformation, o2: CameraInformation): Int {
                 val o1FovSize = o1.fovHorizontal * o1.fovVertical
