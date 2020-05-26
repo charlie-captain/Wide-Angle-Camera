@@ -20,7 +20,6 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_camera.*
 import java.util.*
-import kotlin.random.Random.Default.nextInt
 
 
 class MainActivity : AppCompatActivity() {
@@ -87,53 +86,55 @@ class CameraFragment : Fragment() {
         stringBuilder.appendln("camera2: " + Arrays.toString(cameraIdList))
         stringBuilder.appendln()
 
-        val frontCameraList = arrayListOf<CameraSensorInfo>()
-        val backCameraList = arrayListOf<CameraSensorInfo>()
+        val frontCameraList = arrayListOf<CameraInformation>()
+        val backCameraList = arrayListOf<CameraInformation>()
 
-//        cameraIdList.forEach { id ->
-//            val characteristics = cameraManager.getCameraCharacteristics(id)
-//            //前置
-//            val front = characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
-//            stringBuilder.appendln("camera id = $id: front = $front")
-//            //获取相机的物理尺寸
-//            val size = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
-//            stringBuilder.appendln("sensor info : width =  ${size?.width}, height = ${size?.height}")
-//            stringBuilder.appendln()
-//            if (front) {
-//                frontCameraList.add(CameraSensorInfo(cameraId = id, cameraSensorSize = size!!))
-//            } else {
-//                backCameraList.add(CameraSensorInfo(cameraId = id, cameraSensorSize = size!!))
-//            }
-//        }
+        cameraIdList.forEach { id ->
+            val characteristics = cameraManager.getCameraCharacteristics(id)
+            //前置
+            val front = characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
+            stringBuilder.appendln("camera id = $id: front = $front")
+            //获取相机的物理尺寸
+            val size = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+            stringBuilder.appendln("sensor info : width =  ${size?.width}, height = ${size?.height}")
 
-        for (i in 0..10) {
-            //模拟10个摄像头的判断
-            var iW = (kotlin.random.Random.nextInt(1, 10)).toFloat()
-            var iH = (kotlin.random.Random.nextInt(1, 10)).toFloat()
-            if (i % 2 == 0) {
-                frontCameraList.add(CameraSensorInfo(i.toString(), cameraSensorSize = SizeF(iW, iH)))
+            val focalLens1 = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)!!
+            stringBuilder.appendln("focal lens = ${focalLens1.contentToString()}")
+            val w = size!!.width
+            val h = size.height
+            val horizontalAngle = (2 * Math.atan(w / (focalLens1[0] * 2).toDouble())).toFloat()
+            val verticalAngle = (2 * Math.atan(h / (focalLens1[0] * 2).toDouble())).toFloat()
+            stringBuilder.appendln("horizontalAngle = $horizontalAngle")
+            stringBuilder.appendln("verticalAngle = $verticalAngle")
+
+            stringBuilder.appendln()
+            val cameraInfo = CameraInformation(
+                cameraId = id,
+                isFrontFacing = front,
+                sensorSize = size,
+                fovHorizontal = horizontalAngle,
+                fovVertical = verticalAngle
+            )
+            if (front) {
+                frontCameraList.add(cameraInfo)
             } else {
-                backCameraList.add(CameraSensorInfo(i.toString(), cameraSensorSize = SizeF(iW, iH)))
+                backCameraList.add(cameraInfo)
             }
         }
 
         //简单判断哪个是广角镜头
-        //比较传感器物理尺寸, 尺寸越大, 越有可能是广角
+        //通过FOV(field of view)排序
         //升序比较, 尺寸从小到大
-        val comparator = object : Comparator<CameraSensorInfo> {
-            override fun compare(o1: CameraSensorInfo, o2: CameraSensorInfo): Int {
-                val o1Size = o1.cameraSensorSize
-                val o2Size = o2.cameraSensorSize
-
-                val squareO1 = o1Size.width * o1Size.height
-                val squareO2 = o2Size.width * o2Size.height
-                if (squareO1 > squareO2) {
+        val comparator = object : Comparator<CameraInformation> {
+            override fun compare(o1: CameraInformation, o2: CameraInformation): Int {
+                val o1FovSize = o1.fovHorizontal * o1.fovVertical
+                val o2FovSize = o2.fovHorizontal * o2.fovVertical
+                if (o1FovSize > o2FovSize) {
                     return 1
-                } else if (squareO1 < squareO2) {
+                } else if (o1FovSize < o2FovSize) {
                     return -1
-                } else {
-                    return 0
                 }
+                return 0
             }
         }
 
@@ -142,14 +143,16 @@ class CameraFragment : Fragment() {
 
         stringBuilder.appendln("front camera result:")
         frontCameraList.forEach {
-            stringBuilder.appendln("id = ${it.cameraId}, size = ${it.cameraSensorSize}")
+            stringBuilder.appendln("id = ${it.cameraId}, size = ${it.sensorSize} fovH = ${it.fovHorizontal}")
         }
+        stringBuilder.appendln("front wide camera is ${frontCameraList.last()}")
         stringBuilder.appendln()
 
         stringBuilder.appendln("back camera result:")
         backCameraList.forEach {
-            stringBuilder.appendln("id = ${it.cameraId}, size = ${it.cameraSensorSize}")
+            stringBuilder.appendln("id = ${it.cameraId}, size = ${it.sensorSize} fovH = ${it.fovHorizontal}")
         }
+        stringBuilder.appendln("back wide camera is ${backCameraList.last()}")
 
         textView.text = stringBuilder
         return stringBuilder.toString()
@@ -171,6 +174,12 @@ class CameraFragment : Fragment() {
     }
 
 
-    data class CameraSensorInfo(val cameraId: String, val cameraSensorSize: SizeF)
-
 }
+
+data class CameraInformation(
+    val cameraId: String,
+    val isFrontFacing: Boolean,
+    val sensorSize: SizeF,
+    val fovHorizontal: Float,
+    val fovVertical: Float
+)
