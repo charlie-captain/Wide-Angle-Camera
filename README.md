@@ -6,3 +6,4 @@
 
 ## 参考文献
 1. 三星Camera广角能力开放 http://support-cn.samsung.com/App/DeveloperChina/Notice/Detail?NoticeId=109
+2. https://www.panavision.com/sites/default/files/docs/documentLibrary/2%20Sensor%20Size%20FOV%20(2).pdf
